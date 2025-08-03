@@ -1,0 +1,2839 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกผลการทำ EQA และ Interlab Comparison</title>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e9ecef;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #495057;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            min-width: 150px;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+            color: #2c3e50;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #2c3e50;
+            border-bottom-color: #3498db;
+        }
+        
+        .nav-dropdown {
+            position: relative;
+        }
+
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+
+        .nav-dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .nav-dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Sections */
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
+        }
+
+        .form-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        /* Test Results & Summary */
+        .test-results-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .qa-record-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .qa-record-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .test-result-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        .test-result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-pending {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-na {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #3498db;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        /* Icons & Modals */
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            padding: 30px;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 15px;
+            animation: slideDown 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 10px;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .user-info {
+            text-align: right;
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        /* Admin Tab */
+        .admin-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #27ae60;
+        }
+        
+        .admin-section-sub {
+            background: #f1f3f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .user-list, .test-list, .eqa-list, .interlab-list, .lab-list, .status-list, .audit-list {
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .audit-list {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .list-item.group-header {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item-content {
+            flex-grow: 1;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                flex: none;
+                min-width: auto;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .qa-record-item, .test-result-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 ระบบบันทึกผลการทำ EQA และ Interlab Comparison</h1>
+            <p>ห้องปฏิบัติการเทคนิคการแพทย์</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('login')" id="loginTab">
+                👤 เข้าสู่ระบบ
+            </button>
+            
+            <div class="nav-dropdown" id="entryDropdown" style="display: none;">
+                <button class="nav-tab">📝 บันทึกข้อมูล</button>
+                <div class="nav-dropdown-content">
+                    <a href="#" onclick="showTab('entry-eqa')">บันทึก EQA</a>
+                    <a href="#" onclick="showTab('entry-interlab')">บันทึก Interlab</a>
+                </div>
+            </div>
+            
+            <button class="nav-tab" onclick="showTab('results')" id="resultsTab" style="display: none;">
+                📊 ดูผลการทดสอบ
+            </button>
+            <button class="nav-tab" onclick="showTab('summary')" id="summaryTab" style="display: none;">
+                📈 สรุปผลประจำปี
+            </button>
+            <button class="nav-tab" onclick="showTab('admin')" id="adminTab" style="display: none;">
+                ⚙️ จัดการระบบ
+            </button>
+            <button class="nav-tab" onclick="logout()" id="logoutTab" style="display: none;">
+                🚪 ออกจากระบบ
+            </button>
+        </div>
+
+        <div id="login" class="tab-content active">
+            <div class="form-section">
+                <h3>👤 เข้าสู่ระบบ</h3>
+                <div style="max-width: 400px; margin: 0 auto;">
+                    <div class="form-group">
+                        <label for="loginEmail">อีเมล:</label>
+                        <input type="email" id="loginEmail" placeholder="กรอกอีเมล" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">รหัสผ่าน:</label>
+                        <input type="password" id="loginPassword" placeholder="กรอกรหัสผ่าน" required>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="button" class="btn btn-primary" onclick="login()">
+                            🔑 เข้าสู่ระบบ
+                        </button>
+                    </div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button type="button" class="btn" onclick="showRegisterModal()">
+                            สมัครสมาชิก
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: #e8f4fd; border-radius: 10px; border-left: 4px solid #3498db;">
+                    <h4 style="color: #2c3e50; margin-bottom: 15px;">ข้อมูลสำหรับทดสอบระบบ (หลังจากตั้งค่า Firebase แล้ว):</h4>
+                    <div style="display: grid; gap: 15px;">
+                        <div>
+                            <strong>🧑‍⚕️ เจ้าหน้าที่ห้องปฏิบัติการ:</strong><br>
+                            ชื่อผู้ใช้: <code>lab_user@example.com</code> | รหัสผ่าน: <code>lab123</code>
+                        </div>
+                        <div>
+                            <strong>👨‍💼 ผู้ดูแลระบบ (Admin):</strong><br>
+                            ชื่อผู้ใช้: <code>admin@example.com</code> | รหัสผ่าน: <code>admin123</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="entry-eqa" class="tab-content">
+            <div class="user-info">
+                เข้าสู่ระบบโดย: <strong id="currentUserEQA"></strong>
+            </div>
+
+            <div class="form-section">
+                <h3>📝 บันทึกข้อมูล EQA</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="eqaReceiveDate">วันที่รับตัวอย่าง:</label>
+                        <input type="date" id="eqaReceiveDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eqaSubmitDate">วันที่ส่งผลตัวอย่าง:</label>
+                        <input type="date" id="eqaSubmitDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eqaProjectName">ชื่อโครงการประเมินคุณภาพ:</label>
+                        <select id="eqaProjectName" required>
+                            <option value="">เลือกโครงการ</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="eqaProjectCustomGroup" style="display: none;">
+                        <label for="eqaProjectCustom">ระบุโครงการอื่น:</label>
+                        <input type="text" id="eqaProjectCustom" placeholder="ระบุชื่อโครงการ">
+                    </div>
+                    <div class="form-group">
+                        <label for="eqaAssessmentRound">ครั้งที่ทำการประเมิน:</label>
+                        <input type="text" id="eqaAssessmentRound" placeholder="เช่น ครั้งที่ 1/2025" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eqaAgency">หน่วยงาน EQA:</label>
+                        <input type="text" id="eqaAgency" placeholder="ชื่อหน่วยงานที่จัดทำ EQA" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🧪 รายการทดสอบ</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="eqaTestName">ชื่อรายการทดสอบ:</label>
+                        <select id="eqaTestName" required>
+                            <option value="">เลือกโครงการก่อน</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="eqaTestCustomGroup" style="display: none;">
+                        <label for="eqaTestCustom">ระบุรายการทดสอบอื่น:</label>
+                        <input type="text" id="eqaTestCustom" placeholder="ระบุชื่อรายการทดสอบ">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top: 20px;">
+                    <div class="form-group">
+                        <label for="eqaTestResult">ผลการทดสอบ:</label>
+                        <textarea id="eqaTestResult" rows="4" placeholder="ระบุผลการทดสอบ..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="eqaResultStatus">สถานะผล:</label>
+                        <select id="eqaResultStatus" required>
+                            <option value="">เลือกสถานะ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="eqaComments">หมายเหตุ/ข้อเสนอแนะ:</label>
+                        <textarea id="eqaComments" rows="3" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center; gap: 10px; display: flex; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-primary" onclick="addEQATestResult()">
+                        ➕ เพิ่มผลการทดสอบ
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="saveEQARecord()">
+                        💾 บันทึกข้อมูล EQA
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="clearAllForms('eqa')">
+                        🗑️ ล้างฟอร์ม
+                    </button>
+                </div>
+            </div>
+
+            <div class="test-results-container" id="eqaTestResultsContainer" style="display: none;">
+                <h4>ผลการทดสอบที่เพิ่มแล้ว:</h4>
+                <div id="eqaTestResultsList"></div>
+            </div>
+        </div>
+        
+        <div id="entry-interlab" class="tab-content">
+            <div class="user-info">
+                เข้าสู่ระบบโดย: <strong id="currentUserInterlab"></strong>
+            </div>
+
+            <div class="form-section">
+                <h3>📝 บันทึกข้อมูล Interlab Comparison</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="interlabReceiveDate">วันที่รับตัวอย่าง:</label>
+                        <input type="date" id="interlabReceiveDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interlabSubmitDate">วันที่ส่งผลตัวอย่าง:</label>
+                        <input type="date" id="interlabSubmitDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interlabLabName">ชื่อห้องปฏิบัติการคู่เทียบ:</label>
+                        <select id="interlabLabName" required>
+                            <option value="">เลือกห้องปฏิบัติการ</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="interlabLabCustomGroup" style="display: none;">
+                        <label for="interlabLabCustom">ระบุห้องปฏิบัติการอื่น:</label>
+                        <input type="text" id="interlabLabCustom" placeholder="ระบุชื่อห้องปฏิบัติการ">
+                    </div>
+                    <div class="form-group">
+                        <label for="interlabComparisonRound">ครั้งที่ทำการเทียบ:</label>
+                        <input type="text" id="interlabComparisonRound" placeholder="เช่น ครั้งที่ 1/2025" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🧪 รายการทดสอบ</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="interlabTestName">ชื่อรายการทดสอบ:</label>
+                        <input type="text" id="interlabTestName" placeholder="ระบุชื่อรายการทดสอบ" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="interlabResultStatus">สถานะผล:</label>
+                        <select id="interlabResultStatus" required>
+                            <option value="">เลือกสถานะ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interlabComments">หมายเหตุ/ข้อเสนอแนะ:</label>
+                        <textarea id="interlabComments" rows="3" placeholder="หมายเหตุเพิ่มเติม..."></textarea>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center; gap: 10px; display: flex; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-primary" onclick="addInterlabTestResult()">
+                        ➕ เพิ่มผลการทดสอบ
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="saveInterlabRecord()">
+                        💾 บันทึกข้อมูล Interlab
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="clearAllForms('interlab')">
+                        🗑️ ล้างฟอร์ม
+                    </button>
+                </div>
+            </div>
+
+            <div class="test-results-container" id="interlabTestResultsContainer" style="display: none;">
+                <h4>ผลการทดสอบที่เพิ่มแล้ว:</h4>
+                <div id="interlabTestResultsList"></div>
+            </div>
+        </div>
+
+        <div id="results" class="tab-content">
+            <div class="form-section">
+                <h3>🔍 ค้นหาผลการทดสอบ</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="searchType">ประเภทข้อมูล:</label>
+                        <select id="searchType" onchange="toggleSearchParams()">
+                            <option value="eqa">EQA</option>
+                            <option value="interlab">Interlab Comparison</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="searchProjectGroup">
+                        <label for="searchProject">โครงการ:</label>
+                        <select id="searchProject">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="searchLabGroup" style="display: none;">
+                        <label for="searchLab">ห้องปฏิบัติการคู่เทียบ:</label>
+                        <select id="searchLab">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="searchYear">ปี:</label>
+                        <select id="searchYear">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="searchStatus">สถานะ:</label>
+                        <select id="searchStatus">
+                            <option value="">ทั้งหมด</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-primary" onclick="searchResults()">
+                        🔎 ค้นหา
+                    </button>
+                </div>
+            </div>
+            
+            <div class="test-results-container">
+                <h4>ผลการค้นหา: <span id="resultsCount">0</span> รายการ</h4>
+                <div id="searchResultsList">
+                    <p style="text-align: center; color: #6c757d;">ไม่มีข้อมูลที่ตรงกับการค้นหา</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="summary" class="tab-content">
+            <div class="form-section">
+                <h3>📈 สรุปผลประจำปี</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="summaryType">ประเภทข้อมูล:</label>
+                        <select id="summaryType" onchange="populateSummaryYears(); generateSummary()">
+                            <option value="eqa">EQA</option>
+                            <option value="interlab">Interlab Comparison</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="summaryYear">เลือกปีที่ต้องการสรุป:</label>
+                        <select id="summaryYear" onchange="generateSummary()">
+                            <option value="">เลือกปี</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="summaryContent" style="display: none;">
+                <div class="summary-card">
+                    <h3>ผลสรุปประจำปี <span id="summaryYearLabel"></span> (<span id="summaryTypeLabel">EQA</span>)</h3>
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalTests">0</span>
+                            <span class="stat-label">รายการทดสอบทั้งหมด</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="passRate">0%</span>
+                            <span class="stat-label">อัตราการผ่าน</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="failCount">0</span>
+                            <span class="stat-label">จำนวนที่ไม่ผ่าน</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="warningCount">0</span>
+                            <span class="stat-label">จำนวนที่เตือน</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-card" style="text-align: center;">
+                    <h3>กราฟสรุปผล</h3>
+                    <div style="width: 80%; max-width: 400px; margin: 20px auto;">
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3>รายละเอียดผลที่ไม่ผ่าน</h3>
+                    <div class="test-results-container">
+                        <div id="failResultsList">
+                            <p style="text-align: center; color: #6c757d;">ไม่มีผลการทดสอบที่ไม่ผ่าน</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin" class="tab-content">
+            <div class="user-info">
+                เข้าสู่ระบบโดย: <strong id="adminUser"></strong>
+            </div>
+
+            <div class="admin-section">
+                <h3>👥 จัดการผู้ใช้งาน</h3>
+                <div class="form-grid" style="align-items: flex-end;">
+                    <div class="form-group">
+                        <label for="newUsername">ชื่อผู้ใช้งาน:</label>
+                        <input type="text" id="newUsername" placeholder="ชื่อผู้ใช้งาน">
+                    </div>
+                    <div class="form-group">
+                        <label for="newEmail">อีเมล:</label>
+                        <input type="email" id="newEmail" placeholder="อีเมล">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">รหัสผ่าน:</label>
+                        <input type="password" id="newPassword" placeholder="รหัสผ่าน">
+                    </div>
+                    <div class="form-group">
+                        <label for="newRole">สิทธิ์การใช้งาน:</label>
+                        <select id="newRole">
+                            <option value="lab">เจ้าหน้าที่ห้องปฏิบัติการ</option>
+                            <option value="admin">ผู้ดูแลระบบ</option>
+                        </select>
+                    </div>
+                    <div style="flex-grow: 1; text-align: center;">
+                        <button class="btn btn-success" onclick="addUser()">
+                            ➕ เพิ่มผู้ใช้งาน
+                        </button>
+                    </div>
+                </div>
+                <div class="user-list" id="userList">
+                    </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>📝 จัดการโครงการและรายการทดสอบ (EQA)</h3>
+                <div class="form-group">
+                    <label for="adminProjectName">เลือกโครงการ:</label>
+                    <select id="adminProjectName" onchange="displayProjectDetails()">
+                        <option value="">--เลือกโครงการ--</option>
+                    </select>
+                </div>
+                <div id="projectAdminSection" style="display: none;">
+                    <div class="form-grid" style="margin-top: 15px;">
+                         <div class="form-group">
+                             <label for="editProjectNameInput">แก้ไขชื่อโครงการ:</label>
+                             <input type="text" id="editProjectNameInput">
+                         </div>
+                         <div class="form-group">
+                             <label for="editEqaAgencyInput">แก้ไขหน่วยงาน EQA:</label>
+                             <input type="text" id="editEqaAgencyInput">
+                         </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="saveProjectChanges()">บันทึกการแก้ไขโครงการ</button>
+                        <button class="btn btn-danger" onclick="deleteProject()">ลบโครงการ</button>
+                    </div>
+                    <hr style="margin: 20px 0;">
+                </div>
+                
+                <div id="testItemsAdmin" style="display: none;">
+                    <h4>รายการทดสอบในโครงการ <span id="currentProjectName"></span></h4>
+                    <div class="form-grid" style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label for="newTestName">ชื่อรายการทดสอบใหม่:</label>
+                            <input type="text" id="newTestName" placeholder="เช่น CBC">
+                        </div>
+                        <div class="form-group">
+                            <label for="newTestGroup">กลุ่มการทดสอบ:</label>
+                            <select id="newTestGroup">
+                                <option value="Hematology">Hematology</option>
+                                <option value="Immunology">Immunology</option>
+                                <option value="Clinical Chemistry">Clinical Chemistry</option>
+                                <option value="Microscopy">Microscopy</option>
+                                <option value="Microbiology">Microbiology</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="btn btn-success" onclick="addProjectTestItem()">
+                            ➕ เพิ่มรายการทดสอบ
+                        </button>
+                    </div>
+                    
+                    <div class="test-list" id="projectTestList">
+                        </div>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>🏢 จัดการห้องปฏิบัติการคู่เทียบ (Interlab)</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="newLabName">ชื่อห้องปฏิบัติการคู่เทียบใหม่:</label>
+                        <input type="text" id="newLabName" placeholder="เช่น Lab A, Lab B">
+                    </div>
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-success" onclick="addInterlabLab()">
+                        ➕ เพิ่มห้องปฏิบัติการ
+                    </button>
+                </div>
+                <div class="lab-list" id="interlabLabList">
+                    </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>🚦 จัดการสถานะผล (EQA & Interlab)</h3>
+                <div class="admin-section-sub">
+                    <h4>สถานะ EQA</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newEqaStatusName">ชื่อสถานะใหม่:</label>
+                            <input type="text" id="newEqaStatusName" placeholder="เช่น Waiting">
+                        </div>
+                        <div class="form-group">
+                            <label for="newEqaStatusValue">ค่าในระบบ (English):</label>
+                            <input type="text" id="newEqaStatusValue" placeholder="เช่น waiting">
+                        </div>
+                        <div class="form-group">
+                            <label for="newEqaStatusColor">สี (CSS):</label>
+                            <input type="text" id="newEqaStatusColor" placeholder="เช่น #cce5ff">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="btn btn-success" onclick="addStatus('eqa')">
+                            ➕ เพิ่มสถานะ EQA
+                        </button>
+                    </div>
+                    <div class="status-list" id="eqaStatusList"></div>
+                </div>
+
+                <div class="admin-section-sub">
+                    <h4>สถานะ Interlab</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="newInterlabStatusName">ชื่อสถานะใหม่:</label>
+                            <input type="text" id="newInterlabStatusName" placeholder="เช่น No Result">
+                        </div>
+                        <div class="form-group">
+                            <label for="newInterlabStatusValue">ค่าในระบบ (English):</label>
+                            <input type="text" id="newInterlabStatusValue" placeholder="เช่น no_result">
+                        </div>
+                        <div class="form-group">
+                            <label for="newInterlabStatusColor">สี (CSS):</label>
+                            <input type="text" id="newInterlabStatusColor" placeholder="เช่น #e9ecef">
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; text-align: center;">
+                        <button class="btn btn-success" onclick="addStatus('interlab')">
+                            ➕ เพิ่มสถานะ Interlab
+                        </button>
+                    </div>
+                    <div class="status-list" id="interlabStatusList"></div>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>📚 จัดการข้อมูล EQA ทั้งหมด</h3>
+                <div class="eqa-list" id="eqaList">
+                    </div>
+            </div>
+
+            <div class="admin-section">
+                <h3>📚 จัดการข้อมูล Interlab Comparison ทั้งหมด</h3>
+                <div class="interlab-list" id="interlabList">
+                    </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>📜 ประวัติการตรวจสอบ (Audit Log)</h3>
+                <div class="audit-list" id="auditLogList">
+                    </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="registerModal" class="modal" onclick="closeModal(event, 'registerModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="closeModal(null, 'registerModal')">&times;</span>
+            <h3>➕ สมัครสมาชิก</h3>
+            <div style="max-width: 400px; margin: 0 auto;">
+                <div class="form-group">
+                    <label for="registerUsername">ชื่อผู้ใช้งาน:</label>
+                    <input type="text" id="registerUsername" placeholder="ชื่อผู้ใช้งาน">
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">อีเมล:</label>
+                    <input type="email" id="registerEmail" placeholder="กรอกอีเมล" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">รหัสผ่าน:</label>
+                    <input type="password" id="registerPassword" placeholder="กรอกรหัสผ่าน" required>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="registerUser()">
+                        ✅ สมัครสมาชิก
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editEqaModal" class="modal" onclick="closeModal(event, 'editEqaModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="closeModal(null, 'editEqaModal')">&times;</span>
+            <h3 id="editEqaModalTitle"></h3>
+            <div id="editEqaModalBody">
+                </div>
+            <div style="text-align: center; margin-top: 20px;" id="editEqaModalButtons">
+                <button class="btn btn-primary" onclick="saveEqaRecordChanges()">บันทึกการแก้ไข</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="editInterlabModal" class="modal" onclick="closeModal(event, 'editInterlabModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="closeModal(null, 'editInterlabModal')">&times;</span>
+            <h3 id="editInterlabModalTitle"></h3>
+            <div id="editInterlabModalBody">
+                </div>
+            <div style="text-align: center; margin-top: 20px;" id="editInterlabModalButtons">
+                <button class="btn btn-primary" onclick="saveInterlabRecordChanges()">บันทึกการแก้ไข</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editTestModal" class="modal" onclick="closeModal(event, 'editTestModal')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close" onclick="closeModal(null, 'editTestModal')">&times;</span>
+            <h3 id="editTestModalTitle"></h3>
+            <div id="editTestModalBody">
+                </div>
+            <div style="text-align: center; margin-top: 20px;" id="editTestModalButtons">
+                </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // --- Firebase Configuration ---
+        // REPLACE WITH YOUR FIREBASE PROJECT CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // --- Global Variables ---
+        let users = [];
+        let eqas = [];
+        let interlabs = [];
+        let projects = [];
+        let interlabLabs = [];
+        let statuses = {};
+        let auditLogs = [];
+        let currentEQATestResults = [];
+        let currentInterlabTestResults = [];
+        let loggedInUser = null;
+        let myChart; // Variable to hold the chart instance
+
+        // --- Data Fetching and Initialization ---
+        async function loadDataFromFirebase() {
+            try {
+                // Fetch users
+                const userSnapshot = await db.collection('users').get();
+                users = userSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Fetch other data
+                const [eqaSnapshot, interlabSnapshot, projectsSnapshot, interlabLabsSnapshot, statusesSnapshot, auditLogsSnapshot] = await Promise.all([
+                    db.collection('eqas').get(),
+                    db.collection('interlabs').get(),
+                    db.collection('projects').get(),
+                    db.collection('interlabLabs').get(),
+                    db.collection('statuses').get(),
+                    db.collection('auditLogs').get()
+                ]);
+
+                eqas = eqaSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                interlabs = interlabSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                projects = projectsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                interlabLabs = interlabLabsSnapshot.docs.map(doc => doc.data().name);
+                
+                const statusesDoc = statusesSnapshot.docs[0];
+                if (statusesDoc) {
+                    statuses = statusesDoc.data();
+                } else {
+                    console.error("Statuses document not found. Using default data.");
+                    statuses = {
+                        eqa: [
+                            { name: 'ผ่าน', value: 'pass', color: '#d4edda', text_color: '#155724' },
+                            { name: 'ไม่ผ่าน', value: 'fail', color: '#f8d7da', text_color: '#721c24' },
+                            { name: 'เตือน', value: 'warning', color: '#fff3cd', text_color: '#856404' },
+                            { name: 'รอผล', value: 'pending', color: '#cce5ff', text_color: '#004085' },
+                        ],
+                        interlab: [
+                            { name: 'ผ่าน', value: 'pass', color: '#d4edda', text_color: '#155724' },
+                            { name: 'ไม่ผ่าน', value: 'fail', color: '#f8d7da', text_color: '#721c24' },
+                            { name: 'N/A', value: 'na', color: '#e9ecef', text_color: '#495057' },
+                        ]
+                    };
+                }
+                
+                auditLogs = auditLogsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error("Error loading data from Firebase:", error);
+                // Use default data if Firebase is not configured or fails to load
+                users = [
+                    { username: 'lab_user', email: 'lab_user@example.com', role: 'lab' },
+                    { username: 'admin', email: 'admin@example.com', role: 'admin' }
+                ];
+                projects = [
+                    {
+                        projectName: 'NEQAS-TH',
+                        eqaAgency: 'National External Quality Assessment',
+                        testItems: {
+                            'Hematology': ['CBC', 'PT', 'aPTT'],
+                            'Clinical Chemistry': ['Glucose', 'Cholesterol', 'Triglyceride'],
+                            'Immunology': ['HBsAg', 'Anti-HIV'],
+                            'Microbiology': [],
+                            'Microscopy': [],
+                            'Other': []
+                        }
+                    },
+                    {
+                        projectName: 'CAP',
+                        eqaAgency: 'College of American Pathologists',
+                        testItems: {
+                            'Hematology': ['CBC'],
+                            'Immunology': ['VDRL', 'TPHA'],
+                            'Clinical Chemistry': ['BUN', 'Creatinine'],
+                            'Microbiology': [],
+                            'Microscopy': [],
+                            'Other': []
+                        }
+                    },
+                    {
+                        projectName: 'UKNEQAS',
+                        eqaAgency: 'UK National External Quality Assessment',
+                        testItems: {
+                            'Hematology': ['INR'],
+                            'Immunology': [],
+                            'Clinical Chemistry': [],
+                            'Microbiology': [],
+                            'Microscopy': [],
+                            'Other': []
+                        }
+                    }
+                ];
+                interlabLabs = ['Lab A', 'Lab B', 'Lab C'];
+                statuses = {
+                    eqa: [
+                        { name: 'ผ่าน', value: 'pass', color: '#d4edda', text_color: '#155724' },
+                        { name: 'ไม่ผ่าน', value: 'fail', color: '#f8d7da', text_color: '#721c24' },
+                        { name: 'เตือน', value: 'warning', color: '#fff3cd', text_color: '#856404' },
+                        { name: 'รอผล', value: 'pending', color: '#cce5ff', text_color: '#004085' },
+                    ],
+                    interlab: [
+                        { name: 'ผ่าน', value: 'pass', color: '#d4edda', text_color: '#155724' },
+                        { name: 'ไม่ผ่าน', value: 'fail', color: '#f8d7da', text_color: '#721c24' },
+                        { name: 'N/A', value: 'na', color: '#e9ecef', text_color: '#495057' },
+                    ]
+                };
+            }
+        }
+
+        // --- Audit Trail Function ---
+        async function addLog(action, details) {
+            if (!db) return;
+            const log = {
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                user: loggedInUser ? loggedInUser.email : 'System',
+                action: action,
+                details: details
+            };
+            try {
+                await db.collection('auditLogs').add(log);
+                console.log('Audit Log added:', log);
+            } catch (e) {
+                console.error('Error adding audit log:', e);
+            }
+        }
+
+        // --- UI and Tab Control Functions ---
+        async function showTab(tabId) {
+            // Check if user is logged in before allowing access to certain tabs
+            if (!loggedInUser && tabId !== 'login') {
+                showTab('login');
+                return;
+            }
+
+            // Await data load for all tabs that need it
+            await loadDataFromFirebase();
+
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            const entryDropdownBtn = document.querySelector('#entryDropdown .nav-tab');
+            if (entryDropdownBtn) {
+                entryDropdownBtn.classList.remove('active');
+            }
+
+            const activeTabElement = document.getElementById(tabId);
+            if (activeTabElement) {
+                activeTabElement.style.display = 'block';
+                activeTabElement.classList.add('active');
+            }
+
+            const correspondingNavTab = document.getElementById(tabId + 'Tab');
+            if (correspondingNavTab) {
+                correspondingNavTab.classList.add('active');
+            } else if (tabId.startsWith('entry-') && entryDropdownBtn) {
+                entryDropdownBtn.classList.add('active');
+            }
+
+            if (tabId === 'results') {
+                populateSearchFilters();
+                searchResults();
+            }
+
+            if (tabId === 'summary') {
+                populateSummaryYears();
+                document.getElementById('summaryContent').style.display = 'none';
+            }
+
+            if (tabId === 'admin') {
+                if (loggedInUser && loggedInUser.role === 'admin') {
+                    displayUsers();
+                    populateAdminProjects();
+                    displayInterlabLabs();
+                    displayStatus('eqa');
+                    displayStatus('interlab');
+                    displayEqaRecords();
+                    displayInterlabRecords();
+                    displayAuditLogs();
+                } else {
+                    alert('คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
+                    showTab('entry-eqa'); // Redirect non-admin to EQA entry
+                }
+            }
+            
+            if (tabId === 'entry-eqa') {
+                document.getElementById('currentUserEQA').textContent = loggedInUser.username;
+                populateEQAProjectNames();
+                populateEQATestDropdown('');
+                populateStatusDropdown('eqa', 'eqaResultStatus');
+                clearAllForms('eqa');
+            }
+            
+            if (tabId === 'entry-interlab') {
+                document.getElementById('currentUserInterlab').textContent = loggedInUser.username;
+                populateInterlabLabs();
+                populateStatusDropdown('interlab', 'interlabResultStatus');
+                clearAllForms('interlab');
+            }
+        }
+
+        // --- Login/Logout/Register Functions ---
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
+                if (userDoc.exists) {
+                    loggedInUser = { uid: userDoc.id, ...userDoc.data() };
+                    alert(`เข้าสู่ระบบสำเร็จ! ยินดีต้อนรับ, ${loggedInUser.username}`);
+                    addLog('LOGIN', `User ${loggedInUser.username} logged in.`);
+                    updateUIForLogin();
+                } else {
+                    // If user document doesn't exist, log them out and prompt to register
+                    await auth.signOut();
+                    alert("ไม่พบข้อมูลผู้ใช้งาน. โปรดลองใหม่อีกครั้งหรือลงทะเบียน");
+                }
+            } catch (error) {
+                console.error("Login failed:", error);
+                alert(`เข้าสู่ระบบไม่สำเร็จ: ${error.message}`);
+            }
+        }
+        
+        function showRegisterModal() {
+            document.getElementById('registerModal').style.display = 'flex';
+        }
+        
+        async function registerUser() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            if (!username || !email || !password) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return;
+            }
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    username: username,
+                    email: email,
+                    role: 'lab' // Default role
+                });
+                alert('สมัครสมาชิกสำเร็จ! โปรดเข้าสู่ระบบ');
+                addLog('REGISTER_USER', `New user "${username}" registered.`);
+                closeModal(null, 'registerModal');
+                document.getElementById('loginEmail').value = email;
+                document.getElementById('loginPassword').value = password;
+            } catch (error) {
+                console.error("Registration failed:", error);
+                alert(`สมัครสมาชิกไม่สำเร็จ: ${error.message}`);
+            }
+        }
+        
+        function updateUIForLogin() {
+            document.getElementById('loginTab').style.display = 'none';
+            document.getElementById('entryDropdown').style.display = 'block';
+            document.getElementById('resultsTab').style.display = 'flex';
+            document.getElementById('summaryTab').style.display = 'flex';
+            document.getElementById('logoutTab').style.display = 'flex';
+            
+            if (loggedInUser.role === 'admin') {
+                document.getElementById('adminTab').style.display = 'flex';
+                document.getElementById('adminUser').textContent = loggedInUser.username;
+            } else {
+                document.getElementById('adminTab').style.display = 'none';
+            }
+            showTab('entry-eqa');
+        }
+
+        async function logout() {
+            try {
+                await auth.signOut();
+                addLog('LOGOUT', `User ${loggedInUser.username} logged out.`);
+                loggedInUser = null;
+                currentEQATestResults = [];
+                currentInterlabTestResults = [];
+                alert('ออกจากระบบเรียบร้อย');
+                document.getElementById('loginTab').style.display = 'flex';
+                document.getElementById('entryDropdown').style.display = 'none';
+                document.getElementById('resultsTab').style.display = 'none';
+                document.getElementById('summaryTab').style.display = 'none';
+                document.getElementById('adminTab').style.display = 'none';
+                document.getElementById('logoutTab').style.display = 'none';
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                showTab('login');
+            } catch (error) {
+                console.error("Logout failed:", error);
+                alert("เกิดข้อผิดพลาดในการออกจากระบบ");
+            }
+        }
+
+        // --- EQA Entry Tab Functions ---
+        function populateEQAProjectNames() {
+            const projectNameSelect = document.getElementById('eqaProjectName');
+            projectNameSelect.innerHTML = '<option value="">เลือกโครงการ</option>';
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.projectName;
+                option.textContent = project.projectName;
+                projectNameSelect.appendChild(option);
+            });
+            const otherOption = document.createElement('option');
+            otherOption.value = 'Other';
+            otherOption.textContent = 'อื่น ๆ';
+            projectNameSelect.appendChild(otherOption);
+        }
+
+        document.getElementById('eqaProjectName').addEventListener('change', (e) => {
+            const selectedProject = e.target.value;
+            const customProjectGroup = document.getElementById('eqaProjectCustomGroup');
+            customProjectGroup.style.display = (selectedProject === 'Other') ? 'flex' : 'none';
+            const eqaAgencyInput = document.getElementById('eqaAgency');
+            if (selectedProject && selectedProject !== 'Other') {
+                const project = projects.find(p => p.projectName === selectedProject);
+                if (project) {
+                    eqaAgencyInput.value = project.eqaAgency;
+                }
+            } else {
+                eqaAgencyInput.value = '';
+            }
+            populateEQATestDropdown(selectedProject);
+        });
+
+        function populateEQATestDropdown(projectName) {
+            const testNameSelect = document.getElementById('eqaTestName');
+            testNameSelect.innerHTML = '<option value="">เลือกรายการทดสอบ</option>';
+            if (projectName && projectName !== 'Other') {
+                const project = projects.find(p => p.projectName === projectName);
+                if (project) {
+                    const testGroups = project.testItems;
+                    for (const group in testGroups) {
+                        if (testGroups[group].length > 0) {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = group;
+                            testGroups[group].forEach(test => {
+                                const option = document.createElement('option');
+                                option.value = test;
+                                option.textContent = test;
+                                optgroup.appendChild(option);
+                            });
+                            testNameSelect.appendChild(optgroup);
+                        }
+                    }
+                }
+            }
+            const otherTestOption = document.createElement('option');
+            otherTestOption.value = 'other_test';
+            otherTestOption.textContent = 'ระบุรายการทดสอบอื่น...';
+            testNameSelect.appendChild(otherTestOption);
+        }
+
+        document.getElementById('eqaTestName').addEventListener('change', (e) => {
+            const customTestGroup = document.getElementById('eqaTestCustomGroup');
+            customTestGroup.style.display = (e.target.value === 'other_test') ? 'flex' : 'none';
+        });
+
+        function populateStatusDropdown(type, elementId) {
+            const statusSelect = document.getElementById(elementId);
+            statusSelect.innerHTML = '<option value="">เลือกสถานะ</option>';
+            const statusArray = statuses[type];
+            if (statusArray) {
+                statusArray.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status.value;
+                    option.textContent = status.name;
+                    statusSelect.appendChild(option);
+                });
+            }
+        }
+        
+        function addEQATestResult() {
+            const testNameElement = document.getElementById('eqaTestName');
+            const selectedTestValue = testNameElement.value;
+            const testName = (selectedTestValue === 'other_test') 
+                ? document.getElementById('eqaTestCustom').value 
+                : selectedTestValue;
+            
+            const testResult = document.getElementById('eqaTestResult').value;
+            const resultStatusValue = document.getElementById('eqaResultStatus').value;
+            const comments = document.getElementById('eqaComments').value;
+            
+            if (testName && testResult && resultStatusValue) {
+                const resultStatus = statuses.eqa.find(s => s.value === resultStatusValue);
+                currentEQATestResults.push({
+                    testName,
+                    testResult,
+                    resultStatus,
+                    comments
+                });
+                renderEQATestResults();
+                document.getElementById('eqaTestName').value = '';
+                document.getElementById('eqaTestCustom').value = '';
+                document.getElementById('eqaTestCustomGroup').style.display = 'none';
+                document.getElementById('eqaTestResult').value = '';
+                document.getElementById('eqaResultStatus').value = '';
+                document.getElementById('eqaComments').value = '';
+            } else {
+                alert('กรุณากรอกข้อมูลรายการทดสอบให้ครบถ้วน');
+            }
+        }
+
+        function renderEQATestResults() {
+            const listContainer = document.getElementById('eqaTestResultsList');
+            const container = document.getElementById('eqaTestResultsContainer');
+            listContainer.innerHTML = '';
+            
+            if (currentEQATestResults.length > 0) {
+                container.style.display = 'block';
+                currentEQATestResults.forEach((result, index) => {
+                    const statusClass = `status-${result.resultStatus.value}`;
+                    const listItem = document.createElement('div');
+                    listItem.className = 'test-result-item';
+                    listItem.innerHTML = `
+                        <div class="list-item-content">
+                            <strong>รายการทดสอบ:</strong> ${result.testName}<br>
+                            <strong>ผลการทดสอบ:</strong> ${result.testResult}<br>
+                            <strong>สถานะ:</strong> <span class="result-status ${statusClass}">${result.resultStatus.name}</span>
+                            ${result.comments ? `<br><strong>หมายเหตุ:</strong> ${result.comments}` : ''}
+                        </div>
+                        <button class="btn btn-danger" onclick="removeEQATestResult(${index})">ลบ</button>
+                    `;
+                    listContainer.appendChild(listItem);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+        
+        function removeEQATestResult(index) {
+            currentEQATestResults.splice(index, 1);
+            renderEQATestResults();
+        }
+
+        async function saveEQARecord() {
+            const eqaReceiveDate = document.getElementById('eqaReceiveDate').value;
+            const eqaSubmitDate = document.getElementById('eqaSubmitDate').value;
+            const eqaProjectName = document.getElementById('eqaProjectName').value === 'Other' 
+                ? document.getElementById('eqaProjectCustom').value 
+                : document.getElementById('eqaProjectName').value;
+            const eqaAssessmentRound = document.getElementById('eqaAssessmentRound').value;
+            const eqaAgency = document.getElementById('eqaAgency').value;
+
+            if (eqaReceiveDate && eqaSubmitDate && eqaProjectName && eqaAssessmentRound && eqaAgency && currentEQATestResults.length > 0) {
+                const newRecord = {
+                    receiveDate: eqaReceiveDate,
+                    submitDate: eqaSubmitDate,
+                    projectName: eqaProjectName,
+                    assessmentRound: eqaAssessmentRound,
+                    agency: eqaAgency,
+                    testResults: currentEQATestResults,
+                    recordedBy: loggedInUser.email,
+                    recordedOn: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                try {
+                    await db.collection('eqas').add(newRecord);
+                    addLog('SAVE_EQA', `New EQA record for project "${eqaProjectName}" was saved.`);
+                    alert('บันทึกข้อมูล EQA เรียบร้อยแล้ว');
+                    clearAllForms('eqa');
+                    renderEQATestResults();
+                } catch (e) {
+                    console.error("Error saving EQA record:", e);
+                    alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล EQA");
+                }
+            } else {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วนและเพิ่มผลการทดสอบอย่างน้อย 1 รายการ');
+            }
+        }
+        
+        // --- Interlab Entry Tab Functions ---
+        function populateInterlabLabs() {
+            const labNameSelect = document.getElementById('interlabLabName');
+            labNameSelect.innerHTML = '<option value="">เลือกห้องปฏิบัติการ</option>';
+            interlabLabs.forEach(lab => {
+                const option = document.createElement('option');
+                option.value = lab;
+                option.textContent = lab;
+                labNameSelect.appendChild(option);
+            });
+            const otherOption = document.createElement('option');
+            otherOption.value = 'Other';
+            otherOption.textContent = 'อื่น ๆ';
+            labNameSelect.appendChild(otherOption);
+        }
+
+        document.getElementById('interlabLabName').addEventListener('change', (e) => {
+            const customLabGroup = document.getElementById('interlabLabCustomGroup');
+            customLabGroup.style.display = (e.target.value === 'Other') ? 'flex' : 'none';
+        });
+
+        function addInterlabTestResult() {
+            const testName = document.getElementById('interlabTestName').value;
+            const resultStatusValue = document.getElementById('interlabResultStatus').value;
+            const comments = document.getElementById('interlabComments').value;
+            
+            if (testName && resultStatusValue) {
+                const resultStatus = statuses.interlab.find(s => s.value === resultStatusValue);
+                currentInterlabTestResults.push({
+                    testName,
+                    resultStatus,
+                    comments
+                });
+                renderInterlabTestResults();
+                document.getElementById('interlabTestName').value = '';
+                document.getElementById('interlabResultStatus').value = '';
+                document.getElementById('interlabComments').value = '';
+            } else {
+                alert('กรุณากรอกข้อมูลรายการทดสอบให้ครบถ้วน');
+            }
+        }
+        
+        function renderInterlabTestResults() {
+            const listContainer = document.getElementById('interlabTestResultsList');
+            const container = document.getElementById('interlabTestResultsContainer');
+            listContainer.innerHTML = '';
+            
+            if (currentInterlabTestResults.length > 0) {
+                container.style.display = 'block';
+                currentInterlabTestResults.forEach((result, index) => {
+                    const statusClass = `status-${result.resultStatus.value}`;
+                    const listItem = document.createElement('div');
+                    listItem.className = 'test-result-item';
+                    listItem.innerHTML = `
+                        <div class="list-item-content">
+                            <strong>รายการทดสอบ:</strong> ${result.testName}<br>
+                            <strong>สถานะ:</strong> <span class="result-status ${statusClass}">${result.resultStatus.name}</span>
+                            ${result.comments ? `<br><strong>หมายเหตุ:</strong> ${result.comments}` : ''}
+                        </div>
+                        <button class="btn btn-danger" onclick="removeInterlabTestResult(${index})">ลบ</button>
+                    `;
+                    listContainer.appendChild(listItem);
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function removeInterlabTestResult(index) {
+            currentInterlabTestResults.splice(index, 1);
+            renderInterlabTestResults();
+        }
+
+        async function saveInterlabRecord() {
+            const interlabReceiveDate = document.getElementById('interlabReceiveDate').value;
+            const interlabSubmitDate = document.getElementById('interlabSubmitDate').value;
+            const interlabLabName = document.getElementById('interlabLabName').value === 'Other' 
+                ? document.getElementById('interlabLabCustom').value 
+                : document.getElementById('interlabLabName').value;
+            const interlabComparisonRound = document.getElementById('interlabComparisonRound').value;
+
+            if (interlabReceiveDate && interlabSubmitDate && interlabLabName && interlabComparisonRound && currentInterlabTestResults.length > 0) {
+                const newRecord = {
+                    receiveDate: interlabReceiveDate,
+                    submitDate: interlabSubmitDate,
+                    labName: interlabLabName,
+                    comparisonRound: interlabComparisonRound,
+                    testResults: currentInterlabTestResults,
+                    recordedBy: loggedInUser.email,
+                    recordedOn: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                try {
+                    await db.collection('interlabs').add(newRecord);
+                    addLog('SAVE_INTERLAB', `New Interlab record for lab "${interlabLabName}" was saved.`);
+                    alert('บันทึกข้อมูล Interlab Comparison เรียบร้อยแล้ว');
+                    clearAllForms('interlab');
+                    renderInterlabTestResults();
+                } catch (e) {
+                    console.error("Error saving Interlab record:", e);
+                    alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล Interlab");
+                }
+            } else {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วนและเพิ่มผลการทดสอบอย่างน้อย 1 รายการ');
+            }
+        }
+        
+        // --- Search Results Tab Functions ---
+        async function populateSearchFilters() {
+            const searchProjectSelect = document.getElementById('searchProject');
+            const searchLabSelect = document.getElementById('searchLab');
+            const searchYearSelect = document.getElementById('searchYear');
+            const searchStatusSelect = document.getElementById('searchStatus');
+
+            // Clear previous options
+            searchProjectSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+            searchLabSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+            searchYearSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+            searchStatusSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+
+            const allProjects = [...new Set(projects.map(p => p.projectName))];
+            allProjects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project;
+                option.textContent = project;
+                searchProjectSelect.appendChild(option);
+            });
+
+            const allLabs = [...new Set(interlabLabs)];
+            allLabs.forEach(lab => {
+                const option = document.createElement('option');
+                option.value = lab;
+                option.textContent = lab;
+                searchLabSelect.appendChild(option);
+            });
+            
+            const allYears = new Set();
+            eqas.forEach(r => allYears.add(new Date(r.receiveDate).getFullYear()));
+            interlabs.forEach(r => allYears.add(new Date(r.receiveDate).getFullYear()));
+            [...allYears].sort().forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                searchYearSelect.appendChild(option);
+            });
+
+            const allStatuses = [...new Set([...statuses.eqa, ...statuses.interlab].map(s => s.value))];
+            allStatuses.forEach(statusValue => {
+                const status = statuses.eqa.find(s => s.value === statusValue) || statuses.interlab.find(s => s.value === statusValue);
+                if (status) {
+                    const option = document.createElement('option');
+                    option.value = status.value;
+                    option.textContent = status.name;
+                    searchStatusSelect.appendChild(option);
+                }
+            });
+        }
+        
+        function toggleSearchParams() {
+            const searchType = document.getElementById('searchType').value;
+            const searchProjectGroup = document.getElementById('searchProjectGroup');
+            const searchLabGroup = document.getElementById('searchLabGroup');
+            const searchStatusSelect = document.getElementById('searchStatus');
+
+            if (searchType === 'eqa') {
+                searchProjectGroup.style.display = 'flex';
+                searchLabGroup.style.display = 'none';
+                searchStatusSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+                statuses.eqa.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status.value;
+                    option.textContent = status.name;
+                    searchStatusSelect.appendChild(option);
+                });
+            } else {
+                searchProjectGroup.style.display = 'none';
+                searchLabGroup.style.display = 'flex';
+                searchStatusSelect.innerHTML = '<option value="">ทั้งหมด</option>';
+                statuses.interlab.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status.value;
+                    option.textContent = status.name;
+                    searchStatusSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function searchResults() {
+            await loadDataFromFirebase();
+            const searchType = document.getElementById('searchType').value;
+            const searchYear = document.getElementById('searchYear').value;
+            const searchStatus = document.getElementById('searchStatus').value;
+            const searchProject = document.getElementById('searchProject').value;
+            const searchLab = document.getElementById('searchLab').value;
+            const resultsList = document.getElementById('searchResultsList');
+            resultsList.innerHTML = '';
+            
+            let filteredResults = [];
+            
+            if (searchType === 'eqa') {
+                filteredResults = eqas.filter(record => {
+                    const yearMatch = searchYear ? new Date(record.receiveDate).getFullYear() == searchYear : true;
+                    const projectMatch = searchProject ? record.projectName === searchProject : true;
+                    const statusMatch = searchStatus ? record.testResults.some(t => t.resultStatus.value === searchStatus) : true;
+                    return yearMatch && projectMatch && statusMatch;
+                });
+
+                document.getElementById('resultsCount').textContent = filteredResults.length;
+                if (filteredResults.length > 0) {
+                    filteredResults.forEach(record => {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'qa-record-item';
+                        listItem.innerHTML = `
+                            <div class="list-item-content">
+                                <strong>ประเภท:</strong> EQA<br>
+                                <strong>โครงการ:</strong> ${record.projectName} (${record.agency})<br>
+                                <strong>ครั้งที่:</strong> ${record.assessmentRound}<br>
+                                <strong>วันที่:</strong> ${record.receiveDate} - ${record.submitDate}<br>
+                                <strong>รายการทดสอบ:</strong>
+                                <ul>
+                                    ${record.testResults.map(t => `<li>${t.testName}: <span class="result-status status-${t.resultStatus.value}">${t.resultStatus.name}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                        resultsList.appendChild(listItem);
+                    });
+                } else {
+                    resultsList.innerHTML = '<p style="text-align: center; color: #6c757d;">ไม่มีข้อมูลที่ตรงกับการค้นหา</p>';
+                }
+
+            } else { // Interlab
+                filteredResults = interlabs.filter(record => {
+                    const yearMatch = searchYear ? new Date(record.receiveDate).getFullYear() == searchYear : true;
+                    const labMatch = searchLab ? record.labName === searchLab : true;
+                    const statusMatch = searchStatus ? record.testResults.some(t => t.resultStatus.value === searchStatus) : true;
+                    return yearMatch && labMatch && statusMatch;
+                });
+                
+                document.getElementById('resultsCount').textContent = filteredResults.length;
+                if (filteredResults.length > 0) {
+                    filteredResults.forEach(record => {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'qa-record-item';
+                        listItem.innerHTML = `
+                            <div class="list-item-content">
+                                <strong>ประเภท:</strong> Interlab Comparison<br>
+                                <strong>ห้องปฏิบัติการคู่เทียบ:</strong> ${record.labName}<br>
+                                <strong>ครั้งที่:</strong> ${record.comparisonRound}<br>
+                                <strong>วันที่:</strong> ${record.receiveDate} - ${record.submitDate}<br>
+                                <strong>รายการทดสอบ:</strong>
+                                <ul>
+                                    ${record.testResults.map(t => `<li>${t.testName}: <span class="result-status status-${t.resultStatus.value}">${t.resultStatus.name}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                        resultsList.appendChild(listItem);
+                    });
+                } else {
+                    resultsList.innerHTML = '<p style="text-align: center; color: #6c757d;">ไม่มีข้อมูลที่ตรงกับการค้นหา</p>';
+                }
+            }
+        }
+        
+        // --- Summary Tab Functions ---
+        function populateSummaryYears() {
+            const summaryYearSelect = document.getElementById('summaryYear');
+            const summaryType = document.getElementById('summaryType').value;
+            summaryYearSelect.innerHTML = '<option value="">เลือกปี</option>';
+
+            const allYears = new Set();
+            if (summaryType === 'eqa') {
+                eqas.forEach(r => allYears.add(new Date(r.receiveDate).getFullYear()));
+            } else {
+                interlabs.forEach(r => allYears.add(new Date(r.receiveDate).getFullYear()));
+            }
+            
+            [...allYears].sort((a, b) => b - a).forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                summaryYearSelect.appendChild(option);
+            });
+        }
+        
+        function generateSummary() {
+            const summaryType = document.getElementById('summaryType').value;
+            const summaryYear = document.getElementById('summaryYear').value;
+            const summaryContent = document.getElementById('summaryContent');
+            const summaryYearLabel = document.getElementById('summaryYearLabel');
+            const summaryTypeLabel = document.getElementById('summaryTypeLabel');
+            const totalTestsEl = document.getElementById('totalTests');
+            const passRateEl = document.getElementById('passRate');
+            const failCountEl = document.getElementById('failCount');
+            const warningCountEl = document.getElementById('warningCount');
+            const failResultsListEl = document.getElementById('failResultsList');
+
+            if (!summaryYear) {
+                summaryContent.style.display = 'none';
+                return;
+            }
+
+            summaryContent.style.display = 'block';
+            summaryYearLabel.textContent = summaryYear;
+            summaryTypeLabel.textContent = summaryType.toUpperCase();
+            
+            let records, statusesArray;
+            if (summaryType === 'eqa') {
+                records = eqas.filter(r => new Date(r.receiveDate).getFullYear() == summaryYear);
+                statusesArray = statuses.eqa;
+            } else { // interlab
+                records = interlabs.filter(r => new Date(r.receiveDate).getFullYear() == summaryYear);
+                statusesArray = statuses.interlab;
+            }
+            
+            let allTests = [];
+            records.forEach(r => {
+                allTests = allTests.concat(r.testResults);
+            });
+            
+            const totalTests = allTests.length;
+            totalTestsEl.textContent = totalTests;
+            
+            const passCount = allTests.filter(t => t.resultStatus.value === 'pass').length;
+            const failCount = allTests.filter(t => t.resultStatus.value === 'fail').length;
+            const warningCount = allTests.filter(t => t.resultStatus.value === 'warning').length;
+            
+            failCountEl.textContent = failCount;
+            warningCountEl.textContent = warningCount;
+            
+            const passRate = totalTests > 0 ? ((passCount / totalTests) * 100).toFixed(2) : 0;
+            passRateEl.textContent = `${passRate}%`;
+
+            // Chart
+            const chartCanvas = document.getElementById('summaryChart');
+            const chartData = {
+                labels: statusesArray.map(s => s.name),
+                datasets: [{
+                    label: 'จำนวนรายการทดสอบ',
+                    data: statusesArray.map(s => allTests.filter(t => t.resultStatus.value === s.value).length),
+                    backgroundColor: statusesArray.map(s => s.color),
+                    borderColor: statusesArray.map(s => s.text_color),
+                    borderWidth: 1
+                }]
+            };
+            if (myChart) {
+                myChart.destroy();
+            }
+            myChart = new Chart(chartCanvas, {
+                type: 'doughnut',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `สรุปผล ${summaryType.toUpperCase()} ปี ${summaryYear}`
+                        }
+                    }
+                }
+            });
+            
+            // Failures List
+            const failedTests = allTests.filter(t => t.resultStatus.value === 'fail');
+            failResultsListEl.innerHTML = '';
+            if (failedTests.length > 0) {
+                failedTests.forEach(test => {
+                    const record = records.find(r => r.testResults.includes(test));
+                    const listItem = document.createElement('div');
+                    listItem.className = 'test-result-item';
+                    const recordDetails = summaryType === 'eqa' ? 
+                        `โครงการ: ${record.projectName} (${record.assessmentRound})` :
+                        `ห้องปฏิบัติการ: ${record.labName} (${record.comparisonRound})`;
+                    listItem.innerHTML = `
+                        <div class="list-item-content">
+                            <strong>รายการทดสอบ:</strong> ${test.testName}<br>
+                            <strong>ผลที่ได้:</strong> ${test.testResult}<br>
+                            <strong>สถานะ:</strong> <span class="result-status status-fail">ไม่ผ่าน</span>
+                            ${test.comments ? `<br><strong>หมายเหตุ:</strong> ${test.comments}` : ''}<br>
+                            <span style="font-size: 0.9em; color: #6c757d;">(${recordDetails})</span>
+                        </div>
+                    `;
+                    failResultsListEl.appendChild(listItem);
+                });
+            } else {
+                failResultsListEl.innerHTML = '<p style="text-align: center; color: #6c757d;">ไม่มีผลการทดสอบที่ไม่ผ่าน</p>';
+            }
+        }
+        
+        // --- Admin Tab Functions ---
+        function displayUsers() {
+            const userListEl = document.getElementById('userList');
+            userListEl.innerHTML = `
+                <div class="list-item group-header">
+                    <span>ชื่อผู้ใช้งาน</span>
+                    <span>อีเมล</span>
+                    <span>สิทธิ์การใช้งาน</span>
+                    <span>จัดการ</span>
+                </div>
+            `;
+            users.forEach((user) => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                listItem.innerHTML = `
+                    <span>${user.username}</span>
+                    <span>${user.email}</span>
+                    <span>${user.role === 'admin' ? 'ผู้ดูแลระบบ' : 'เจ้าหน้าที่ห้องปฏิบัติการ'}</span>
+                    <span>
+                        <button class="btn btn-danger" onclick="deleteUser('${user.id}')">ลบ</button>
+                    </span>
+                `;
+                userListEl.appendChild(listItem);
+            });
+        }
+        
+        async function addUser() {
+            const newUsername = document.getElementById('newUsername').value;
+            const newEmail = document.getElementById('newEmail').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const newRole = document.getElementById('newRole').value;
+            
+            if (!newUsername || !newEmail || !newPassword || !newRole) {
+                alert('กรุณากรอกข้อมูลผู้ใช้งานให้ครบถ้วน');
+                return;
+            }
+            
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(newEmail, newPassword);
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    username: newUsername,
+                    email: newEmail,
+                    role: newRole
+                });
+                alert('เพิ่มผู้ใช้งานใหม่เรียบร้อยแล้ว');
+                addLog('ADD_USER', `Added new user: ${newUsername} (${newEmail}) with role ${newRole}`);
+                document.getElementById('newUsername').value = '';
+                document.getElementById('newEmail').value = '';
+                document.getElementById('newPassword').value = '';
+                await loadDataFromFirebase();
+                displayUsers();
+            } catch (error) {
+                console.error("Add user failed:", error);
+                alert(`เพิ่มผู้ใช้งานไม่สำเร็จ: ${error.message}`);
+            }
+        }
+        
+        async function deleteUser(userId) {
+            if (confirm(`คุณต้องการลบผู้ใช้งานนี้ใช่หรือไม่?`)) {
+                if (userId === loggedInUser.uid) {
+                    alert('ไม่สามารถลบผู้ใช้งานที่กำลังเข้าสู่ระบบอยู่ได้');
+                    return;
+                }
+                try {
+                    await db.collection('users').doc(userId).delete();
+                    addLog('DELETE_USER', `Deleted user with ID: ${userId}`);
+                    await loadDataFromFirebase();
+                    displayUsers();
+                } catch (e) {
+                    console.error("Error deleting user:", e);
+                    alert("ไม่สามารถลบผู้ใช้งานได้");
+                }
+            }
+        }
+        
+        function populateAdminProjects() {
+            const selectEl = document.getElementById('adminProjectName');
+            selectEl.innerHTML = '<option value="">--เลือกโครงการ--</option>';
+            projects.forEach(project => {
+                const option = document.createElement('option');
+                option.value = project.projectName;
+                option.textContent = project.projectName;
+                selectEl.appendChild(option);
+            });
+            selectEl.innerHTML += '<option value="add_new_project">➕ เพิ่มโครงการใหม่</option>';
+        }
+        
+        function displayProjectDetails() {
+            const selectEl = document.getElementById('adminProjectName');
+            const projectName = selectEl.value;
+            const projectAdminSection = document.getElementById('projectAdminSection');
+            const testItemsAdmin = document.getElementById('testItemsAdmin');
+            
+            if (projectName === 'add_new_project') {
+                projectAdminSection.style.display = 'block';
+                testItemsAdmin.style.display = 'none';
+                document.getElementById('editProjectNameInput').value = '';
+                document.getElementById('editEqaAgencyInput').value = '';
+                document.getElementById('editProjectNameInput').placeholder = 'ชื่อโครงการใหม่';
+                document.getElementById('editEqaAgencyInput').placeholder = 'ชื่อหน่วยงาน EQA';
+                const buttons = document.getElementById('editEqaModalButtons');
+                buttons.innerHTML = `
+                    <button class="btn btn-success" onclick="addNewProject()">เพิ่มโครงการ</button>
+                    <button class="btn btn-danger" onclick="displayProjectDetails()">ยกเลิก</button>
+                `;
+            } else if (projectName) {
+                projectAdminSection.style.display = 'block';
+                testItemsAdmin.style.display = 'block';
+                const project = projects.find(p => p.projectName === projectName);
+                if (project) {
+                    document.getElementById('editProjectNameInput').value = project.projectName;
+                    document.getElementById('editEqaAgencyInput').value = project.eqaAgency;
+                    document.getElementById('currentProjectName').textContent = project.projectName;
+                    renderProjectTestList(project);
+                }
+            } else {
+                projectAdminSection.style.display = 'none';
+                testItemsAdmin.style.display = 'none';
+            }
+        }
+        
+        function renderProjectTestList(project) {
+            const testListEl = document.getElementById('projectTestList');
+            testListEl.innerHTML = '';
+            for (const group in project.testItems) {
+                if (project.testItems[group].length > 0) {
+                    const groupHeader = document.createElement('div');
+                    groupHeader.className = 'list-item group-header';
+                    groupHeader.innerHTML = `<span><strong>กลุ่ม: ${group}</strong></span>`;
+                    testListEl.appendChild(groupHeader);
+                    
+                    project.testItems[group].forEach((test) => {
+                        const listItem = document.createElement('div');
+                        listItem.className = 'list-item';
+                        listItem.innerHTML = `
+                            <span>${test}</span>
+                            <span>
+                                <button class="btn btn-warning" onclick="openEditTestModal('${project.id}', '${group}', '${test}')">แก้ไข</button>
+                                <button class="btn btn-danger" onclick="deleteProjectTestItem('${project.id}', '${group}', '${test}')">ลบ</button>
+                            </span>
+                        `;
+                        testListEl.appendChild(listItem);
+                    });
+                }
+            }
+        }
+        
+        async function addNewProject() {
+            const newProjectName = document.getElementById('editProjectNameInput').value;
+            const newEqaAgency = document.getElementById('editEqaAgencyInput').value;
+            
+            if (newProjectName && newEqaAgency) {
+                if (projects.some(p => p.projectName === newProjectName)) {
+                    alert('มีชื่อโครงการนี้อยู่แล้ว');
+                    return;
+                }
+                const newProject = {
+                    projectName: newProjectName,
+                    eqaAgency: newEqaAgency,
+                    testItems: {
+                        'Hematology': [], 'Immunology': [], 'Clinical Chemistry': [], 'Microscopy': [], 'Microbiology': [], 'Other': []
+                    }
+                };
+                try {
+                    await db.collection('projects').add(newProject);
+                    addLog('ADD_PROJECT', `Added new project: ${newProjectName}`);
+                    alert('เพิ่มโครงการใหม่เรียบร้อยแล้ว');
+                    await loadDataFromFirebase();
+                    populateAdminProjects();
+                    document.getElementById('adminProjectName').value = newProjectName;
+                    displayProjectDetails();
+                } catch (e) {
+                    console.error("Error adding project:", e);
+                    alert("ไม่สามารถเพิ่มโครงการได้");
+                }
+            } else {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+            }
+        }
+        
+        async function saveProjectChanges() {
+            const oldProjectName = document.getElementById('adminProjectName').value;
+            const newProjectName = document.getElementById('editProjectNameInput').value;
+            const newEqaAgency = document.getElementById('editEqaAgencyInput').value;
+            
+            const project = projects.find(p => p.projectName === oldProjectName);
+            if (project) {
+                try {
+                    await db.collection('projects').doc(project.id).update({
+                        projectName: newProjectName,
+                        eqaAgency: newEqaAgency
+                    });
+                    addLog('UPDATE_PROJECT', `Updated project "${oldProjectName}" to "${newProjectName}".`);
+                    alert('บันทึกการแก้ไขโครงการเรียบร้อยแล้ว');
+                    await loadDataFromFirebase();
+                    populateAdminProjects();
+                    document.getElementById('adminProjectName').value = newProjectName;
+                    displayProjectDetails();
+                } catch (e) {
+                    console.error("Error updating project:", e);
+                    alert("ไม่สามารถบันทึกการแก้ไขได้");
+                }
+            }
+        }
+        
+        async function deleteProject() {
+            const projectName = document.getElementById('adminProjectName').value;
+            if (confirm(`คุณต้องการลบโครงการ ${projectName} และข้อมูลที่เกี่ยวข้องทั้งหมดใช่หรือไม่?`)) {
+                const project = projects.find(p => p.projectName === projectName);
+                if (project) {
+                    try {
+                        await db.collection('projects').doc(project.id).delete();
+                        addLog('DELETE_PROJECT', `Deleted project: ${projectName}`);
+                        alert('ลบโครงการเรียบร้อยแล้ว');
+                        await loadDataFromFirebase();
+                        populateAdminProjects();
+                        displayProjectDetails();
+                    } catch (e) {
+                        console.error("Error deleting project:", e);
+                        alert("ไม่สามารถลบโครงการได้");
+                    }
+                }
+            }
+        }
+        
+        async function addProjectTestItem() {
+            const projectName = document.getElementById('adminProjectName').value;
+            const newTestName = document.getElementById('newTestName').value;
+            const newTestGroup = document.getElementById('newTestGroup').value;
+            
+            if (newTestName) {
+                const project = projects.find(p => p.projectName === projectName);
+                if (project) {
+                    if (!project.testItems[newTestGroup]) {
+                        project.testItems[newTestGroup] = [];
+                    }
+                    if (project.testItems[newTestGroup].includes(newTestName)) {
+                         alert('มีรายการทดสอบนี้ในกลุ่มเดียวกันอยู่แล้ว');
+                         return;
+                    }
+                    project.testItems[newTestGroup].push(newTestName);
+                    
+                    try {
+                        await db.collection('projects').doc(project.id).update({
+                            testItems: project.testItems
+                        });
+                        addLog('ADD_TEST_ITEM', `Added test item "${newTestName}" to project "${projectName}" in group "${newTestGroup}".`);
+                        alert('เพิ่มรายการทดสอบเรียบร้อยแล้ว');
+                        await loadDataFromFirebase();
+                        document.getElementById('newTestName').value = '';
+                        renderProjectTestList(project);
+                    } catch (e) {
+                        console.error("Error adding test item:", e);
+                        alert("ไม่สามารถเพิ่มรายการทดสอบได้");
+                    }
+                }
+            } else {
+                alert('กรุณากรอกชื่อรายการทดสอบ');
+            }
+        }
+        
+        async function deleteProjectTestItem(projectId, group, testName) {
+            if (confirm(`คุณต้องการลบรายการทดสอบ ${testName} ใช่หรือไม่?`)) {
+                const project = projects.find(p => p.id === projectId);
+                if (project) {
+                    const index = project.testItems[group].indexOf(testName);
+                    if (index > -1) {
+                        project.testItems[group].splice(index, 1);
+                        try {
+                            await db.collection('projects').doc(projectId).update({
+                                testItems: project.testItems
+                            });
+                            addLog('DELETE_TEST_ITEM', `Deleted test item "${testName}" from project ID "${projectId}" in group "${group}".`);
+                            await loadDataFromFirebase();
+                            renderProjectTestList(project);
+                        } catch (e) {
+                            console.error("Error deleting test item:", e);
+                            alert("ไม่สามารถลบรายการทดสอบได้");
+                        }
+                    }
+                }
+            }
+        }
+
+        function openEditTestModal(projectId, group, testName) {
+            const modal = document.getElementById('editTestModal');
+            document.getElementById('editTestModalTitle').textContent = `แก้ไขรายการทดสอบ: ${testName}`;
+            
+            const body = document.getElementById('editTestModalBody');
+            body.innerHTML = `
+                <div class="form-group">
+                    <label for="editTestNameInput">ชื่อรายการทดสอบ:</label>
+                    <input type="text" id="editTestNameInput" value="${testName}">
+                </div>
+                <div class="form-group">
+                    <label for="editTestGroupSelect">กลุ่มการทดสอบ:</label>
+                    <select id="editTestGroupSelect">
+                        <option value="Hematology">Hematology</option>
+                        <option value="Immunology">Immunology</option>
+                        <option value="Clinical Chemistry">Clinical Chemistry</option>
+                        <option value="Microscopy">Microscopy</option>
+                        <option value="Microbiology">Microbiology</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            `;
+            document.getElementById('editTestGroupSelect').value = group;
+            
+            const buttons = document.getElementById('editTestModalButtons');
+            buttons.innerHTML = `
+                <button class="btn btn-primary" onclick="saveTestChanges('${projectId}', '${group}', '${testName}')">บันทึก</button>
+                <button class="btn btn-danger" onclick="closeModal(null, 'editTestModal')">ยกเลิก</button>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        async function saveTestChanges(projectId, oldGroup, oldTestName) {
+            const newTestName = document.getElementById('editTestNameInput').value;
+            const newTestGroup = document.getElementById('editTestGroupSelect').value;
+            
+            if (!newTestName) {
+                alert('กรุณากรอกชื่อรายการทดสอบ');
+                return;
+            }
+            
+            const project = projects.find(p => p.id === projectId);
+            if (project) {
+                // Remove old
+                const oldIndex = project.testItems[oldGroup].indexOf(oldTestName);
+                if (oldIndex > -1) {
+                    project.testItems[oldGroup].splice(oldIndex, 1);
+                }
+                
+                // Add new
+                if (!project.testItems[newTestGroup]) {
+                    project.testItems[newTestGroup] = [];
+                }
+                project.testItems[newTestGroup].push(newTestName);
+                
+                try {
+                    await db.collection('projects').doc(projectId).update({
+                        testItems: project.testItems
+                    });
+                    addLog('UPDATE_TEST_ITEM', `Updated test item "${oldTestName}" to "${newTestName}" in project "${project.projectName}".`);
+                    await loadDataFromFirebase();
+                    closeModal(null, 'editTestModal');
+                    renderProjectTestList(project);
+                } catch (e) {
+                    console.error("Error updating test item:", e);
+                    alert("ไม่สามารถบันทึกการแก้ไขได้");
+                }
+            }
+        }
+        
+        async function addInterlabLab() {
+            const newLabName = document.getElementById('newLabName').value;
+            if (newLabName) {
+                if (interlabLabs.includes(newLabName)) {
+                    alert('มีชื่อห้องปฏิบัติการนี้อยู่แล้ว');
+                    return;
+                }
+                
+                try {
+                    await db.collection('interlabLabs').add({ name: newLabName });
+                    addLog('ADD_INTERLAB_LAB', `Added new interlab lab: ${newLabName}`);
+                    alert('เพิ่มห้องปฏิบัติการเรียบร้อยแล้ว');
+                    await loadDataFromFirebase();
+                    document.getElementById('newLabName').value = '';
+                    displayInterlabLabs();
+                } catch (e) {
+                    console.error("Error adding interlab lab:", e);
+                    alert("ไม่สามารถเพิ่มห้องปฏิบัติการได้");
+                }
+            } else {
+                alert('กรุณากรอกชื่อห้องปฏิบัติการ');
+            }
+        }
+        
+        function displayInterlabLabs() {
+            const labListEl = document.getElementById('interlabLabList');
+            labListEl.innerHTML = `
+                <div class="list-item group-header">
+                    <span>ชื่อห้องปฏิบัติการคู่เทียบ</span>
+                    <span>จัดการ</span>
+                </div>
+            `;
+            interlabLabs.forEach((lab, index) => {
+                const labDoc = interlabLabs.find(l => l.name === lab);
+                if (labDoc) {
+                     const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    listItem.innerHTML = `
+                        <span>${lab}</span>
+                        <span>
+                            <button class="btn btn-danger" onclick="deleteInterlabLab('${labDoc.id}')">ลบ</button>
+                        </span>
+                    `;
+                    labListEl.appendChild(listItem);
+                }
+            });
+        }
+        
+        async function deleteInterlabLab(labId) {
+            const labDoc = interlabLabs.find(l => l.id === labId);
+            if (confirm(`คุณต้องการลบห้องปฏิบัติการ ${labDoc.name} ใช่หรือไม่?`)) {
+                try {
+                    await db.collection('interlabLabs').doc(labId).delete();
+                    addLog('DELETE_INTERLAB_LAB', `Deleted interlab lab: ${labDoc.name}`);
+                    await loadDataFromFirebase();
+                    displayInterlabLabs();
+                } catch (e) {
+                    console.error("Error deleting interlab lab:", e);
+                    alert("ไม่สามารถลบห้องปฏิบัติการได้");
+                }
+            }
+        }
+
+        async function addStatus(type) {
+            const newStatusName = document.getElementById(`new${type.charAt(0).toUpperCase() + type.slice(1)}StatusName`).value;
+            const newStatusValue = document.getElementById(`new${type.charAt(0).toUpperCase() + type.slice(1)}StatusValue`).value;
+            const newStatusColor = document.getElementById(`new${type.charAt(0).toUpperCase() + type.slice(1)}StatusColor`).value;
+
+            if (newStatusName && newStatusValue && newStatusColor) {
+                if (statuses[type].some(s => s.value === newStatusValue)) {
+                    alert('มีค่าสถานะนี้อยู่แล้ว');
+                    return;
+                }
+                
+                const newStatuses = { ...statuses };
+                newStatuses[type].push({
+                    name: newStatusName,
+                    value: newStatusValue,
+                    color: newStatusColor,
+                    text_color: '#000' // Default text color
+                });
+                
+                try {
+                    const statusesDoc = await db.collection('statuses').limit(1).get();
+                    if (statusesDoc.docs.length > 0) {
+                        await db.collection('statuses').doc(statusesDoc.docs[0].id).update(newStatuses);
+                    } else {
+                        await db.collection('statuses').add(newStatuses);
+                    }
+                    addLog('ADD_STATUS', `Added new ${type} status: ${newStatusName}`);
+                    alert('เพิ่มสถานะเรียบร้อยแล้ว');
+                    await loadDataFromFirebase();
+                    displayStatus(type);
+                    document.getElementById(`new${type.charAt(0).toUpperCase() + type.slice(1)}StatusName`).value = '';
+                    document.getElementById(`new${type.charAt(0).toUpperCase() + type.slice(1)}StatusValue`).value = '';
+                    document.getElementById(`new${type.charAt(0).toUpperCase() + type.slice(1)}StatusColor`).value = '';
+                } catch (e) {
+                    console.error("Error adding status:", e);
+                    alert("ไม่สามารถเพิ่มสถานะได้");
+                }
+            } else {
+                alert('กรุณากรอกข้อมูลสถานะให้ครบถ้วน');
+            }
+        }
+
+        function displayStatus(type) {
+            const statusListEl = document.getElementById(`${type}StatusList`);
+            statusListEl.innerHTML = `
+                <div class="list-item group-header">
+                    <span>ชื่อสถานะ</span>
+                    <span>ค่า</span>
+                    <span>สี</span>
+                    <span>จัดการ</span>
+                </div>
+            `;
+            statuses[type].forEach((status, index) => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-item';
+                listItem.innerHTML = `
+                    <span>${status.name}</span>
+                    <span>${status.value}</span>
+                    <span><div style="width: 20px; height: 20px; background-color: ${status.color}; border-radius: 4px; border: 1px solid #ccc;"></div></span>
+                    <span>
+                        <button class="btn btn-danger" onclick="deleteStatus('${type}', ${index})">ลบ</button>
+                    </span>
+                `;
+                statusListEl.appendChild(listItem);
+            });
+        }
+        
+        async function deleteStatus(type, index) {
+            if (confirm(`คุณต้องการลบสถานะ ${statuses[type][index].name} ใช่หรือไม่?`)) {
+                const newStatuses = { ...statuses };
+                const deletedStatus = newStatuses[type].splice(index, 1);
+                
+                try {
+                    const statusesDoc = await db.collection('statuses').limit(1).get();
+                    if (statusesDoc.docs.length > 0) {
+                        await db.collection('statuses').doc(statusesDoc.docs[0].id).update(newStatuses);
+                        addLog('DELETE_STATUS', `Deleted ${type} status: ${deletedStatus[0].name}`);
+                        await loadDataFromFirebase();
+                        displayStatus(type);
+                    }
+                } catch (e) {
+                    console.error("Error deleting status:", e);
+                    alert("ไม่สามารถลบสถานะได้");
+                }
+            }
+        }
+        
+        function displayEqaRecords() {
+            const listEl = document.getElementById('eqaList');
+            listEl.innerHTML = '';
+            if (eqas.length > 0) {
+                eqas.forEach((record) => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    listItem.innerHTML = `
+                        <div class="list-item-content">
+                            <strong>โครงการ:</strong> ${record.projectName} (${record.assessmentRound})<br>
+                            <strong>วันที่:</strong> ${record.receiveDate} - ${record.submitDate}
+                        </div>
+                        <div>
+                            <button class="btn btn-warning" onclick="openEqaEditModal('${record.id}')">แก้ไข</button>
+                            <button class="btn btn-danger" onclick="deleteEqaRecord('${record.id}')">ลบ</button>
+                        </div>
+                    `;
+                    listEl.appendChild(listItem);
+                });
+            } else {
+                listEl.innerHTML = '<p style="text-align: center; color: #6c757d;">ไม่มีข้อมูล EQA</p>';
+            }
+        }
+        
+        function openEqaEditModal(recordId) {
+            const record = eqas.find(r => r.id === recordId);
+            const modal = document.getElementById('editEqaModal');
+            document.getElementById('editEqaModalTitle').textContent = `แก้ไขข้อมูล EQA: ${record.projectName}`;
+            
+            const body = document.getElementById('editEqaModalBody');
+            let testResultsHtml = record.testResults.map((test, testIndex) => `
+                <div class="form-section">
+                    <h4>รายการทดสอบ: ${test.testName}</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>ผลการทดสอบ:</label>
+                            <textarea id="editEqaResult-${testIndex}" rows="4">${test.testResult}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>สถานะผล:</label>
+                            <select id="editEqaStatus-${testIndex}">
+                                ${statuses.eqa.map(s => `<option value="${s.value}" ${test.resultStatus.value === s.value ? 'selected' : ''}>${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>หมายเหตุ:</label>
+                            <textarea id="editEqaComments-${testIndex}" rows="3">${test.comments || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            body.innerHTML = `
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>วันที่รับตัวอย่าง:</label>
+                        <input type="date" id="editEqaReceiveDate" value="${record.receiveDate}">
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่ส่งผลตัวอย่าง:</label>
+                        <input type="date" id="editEqaSubmitDate" value="${record.submitDate}">
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อโครงการ:</label>
+                        <input type="text" id="editEqaProjectName" value="${record.projectName}">
+                    </div>
+                    <div class="form-group">
+                        <label>ครั้งที่:</label>
+                        <input type="text" id="editEqaAssessmentRound" value="${record.assessmentRound}">
+                    </div>
+                    <div class="form-group">
+                        <label>หน่วยงาน EQA:</label>
+                        <input type="text" id="editEqaAgency" value="${record.agency}">
+                    </div>
+                </div>
+                <hr style="margin: 20px 0;">
+                <div id="editEqaTestResultsContainer">${testResultsHtml}</div>
+            `;
+            
+            const buttons = document.getElementById('editEqaModalButtons');
+            buttons.innerHTML = `
+                <button class="btn btn-primary" onclick="saveEqaRecordChanges('${recordId}')">บันทึกการแก้ไข</button>
+                <button class="btn btn-danger" onclick="closeModal(null, 'editEqaModal')">ยกเลิก</button>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        async function saveEqaRecordChanges(recordId) {
+            const record = eqas.find(r => r.id === recordId);
+            if (!record) return;
+
+            const newRecordData = {
+                receiveDate: document.getElementById('editEqaReceiveDate').value,
+                submitDate: document.getElementById('editEqaSubmitDate').value,
+                projectName: document.getElementById('editEqaProjectName').value,
+                assessmentRound: document.getElementById('editEqaAssessmentRound').value,
+                agency: document.getElementById('editEqaAgency').value,
+                testResults: record.testResults.map((test, testIndex) => {
+                    const newResult = document.getElementById(`editEqaResult-${testIndex}`).value;
+                    const newStatusValue = document.getElementById(`editEqaStatus-${testIndex}`).value;
+                    const newComments = document.getElementById(`editEqaComments-${testIndex}`).value;
+                    
+                    return {
+                        testName: test.testName,
+                        testResult: newResult,
+                        resultStatus: statuses.eqa.find(s => s.value === newStatusValue),
+                        comments: newComments
+                    };
+                })
+            };
+
+            try {
+                await db.collection('eqas').doc(recordId).update(newRecordData);
+                addLog('UPDATE_EQA_RECORD', `Updated EQA record ID: ${recordId}`);
+                alert('บันทึกการแก้ไข EQA เรียบร้อยแล้ว');
+                await loadDataFromFirebase();
+                closeModal(null, 'editEqaModal');
+                displayEqaRecords();
+            } catch (e) {
+                console.error("Error updating EQA record:", e);
+                alert("ไม่สามารถบันทึกการแก้ไข EQA ได้");
+            }
+        }
+        
+        async function deleteEqaRecord(recordId) {
+            const record = eqas.find(r => r.id === recordId);
+            if (confirm(`คุณต้องการลบข้อมูล EQA ของโครงการ ${record.projectName} ใช่หรือไม่?`)) {
+                try {
+                    await db.collection('eqas').doc(recordId).delete();
+                    addLog('DELETE_EQA_RECORD', `Deleted EQA record ID: ${recordId}`);
+                    await loadDataFromFirebase();
+                    displayEqaRecords();
+                } catch (e) {
+                    console.error("Error deleting EQA record:", e);
+                    alert("ไม่สามารถลบข้อมูล EQA ได้");
+                }
+            }
+        }
+        
+        function displayInterlabRecords() {
+            const listEl = document.getElementById('interlabList');
+            listEl.innerHTML = '';
+            if (interlabs.length > 0) {
+                interlabs.forEach((record) => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    listItem.innerHTML = `
+                        <div class="list-item-content">
+                            <strong>ห้องปฏิบัติการ:</strong> ${record.labName} (${record.comparisonRound})<br>
+                            <strong>วันที่:</strong> ${record.receiveDate} - ${record.submitDate}
+                        </div>
+                        <div>
+                            <button class="btn btn-warning" onclick="openInterlabEditModal('${record.id}')">แก้ไข</button>
+                            <button class="btn btn-danger" onclick="deleteInterlabRecord('${record.id}')">ลบ</button>
+                        </div>
+                    `;
+                    listEl.appendChild(listItem);
+                });
+            } else {
+                listEl.innerHTML = '<p style="text-align: center; color: #6c757d;">ไม่มีข้อมูล Interlab</p>';
+            }
+        }
+
+        function openInterlabEditModal(recordId) {
+            const record = interlabs.find(r => r.id === recordId);
+            const modal = document.getElementById('editInterlabModal');
+            document.getElementById('editInterlabModalTitle').textContent = `แก้ไขข้อมูล Interlab: ${record.labName}`;
+            
+            const body = document.getElementById('editInterlabModalBody');
+            let testResultsHtml = record.testResults.map((test, testIndex) => `
+                <div class="form-section">
+                    <h4>รายการทดสอบ: ${test.testName}</h4>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>สถานะผล:</label>
+                            <select id="editInterlabStatus-${testIndex}">
+                                ${statuses.interlab.map(s => `<option value="${s.value}" ${test.resultStatus.value === s.value ? 'selected' : ''}>${s.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>หมายเหตุ:</label>
+                            <textarea id="editInterlabComments-${testIndex}" rows="3">${test.comments || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            body.innerHTML = `
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>วันที่รับตัวอย่าง:</label>
+                        <input type="date" id="editInterlabReceiveDate" value="${record.receiveDate}">
+                    </div>
+                    <div class="form-group">
+                        <label>วันที่ส่งผลตัวอย่าง:</label>
+                        <input type="date" id="editInterlabSubmitDate" value="${record.submitDate}">
+                    </div>
+                    <div class="form-group">
+                        <label>ชื่อห้องปฏิบัติการคู่เทียบ:</label>
+                        <input type="text" id="editInterlabLabName" value="${record.labName}">
+                    </div>
+                    <div class="form-group">
+                        <label>ครั้งที่:</label>
+                        <input type="text" id="editInterlabComparisonRound" value="${record.comparisonRound}">
+                    </div>
+                </div>
+                <hr style="margin: 20px 0;">
+                <div id="editInterlabTestResultsContainer">${testResultsHtml}</div>
+            `;
+            
+            const buttons = document.getElementById('editInterlabModalButtons');
+            buttons.innerHTML = `
+                <button class="btn btn-primary" onclick="saveInterlabRecordChanges('${recordId}')">บันทึกการแก้ไข</button>
+                <button class="btn btn-danger" onclick="closeModal(null, 'editInterlabModal')">ยกเลิก</button>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        async function saveInterlabRecordChanges(recordId) {
+            const record = interlabs.find(r => r.id === recordId);
+            if (!record) return;
+
+            const newRecordData = {
+                receiveDate: document.getElementById('editInterlabReceiveDate').value,
+                submitDate: document.getElementById('editInterlabSubmitDate').value,
+                labName: document.getElementById('editInterlabLabName').value,
+                comparisonRound: document.getElementById('editInterlabComparisonRound').value,
+                testResults: record.testResults.map((test, testIndex) => {
+                    const newStatusValue = document.getElementById(`editInterlabStatus-${testIndex}`).value;
+                    const newComments = document.getElementById(`editInterlabComments-${testIndex}`).value;
+                    
+                    return {
+                        testName: test.testName,
+                        resultStatus: statuses.interlab.find(s => s.value === newStatusValue),
+                        comments: newComments
+                    };
+                })
+            };
+
+            try {
+                await db.collection('interlabs').doc(recordId).update(newRecordData);
+                addLog('UPDATE_INTERLAB_RECORD', `Updated Interlab record ID: ${recordId}`);
+                alert('บันทึกการแก้ไข Interlab เรียบร้อยแล้ว');
+                await loadDataFromFirebase();
+                closeModal(null, 'editInterlabModal');
+                displayInterlabRecords();
+            } catch (e) {
+                console.error("Error updating Interlab record:", e);
+                alert("ไม่สามารถบันทึกการแก้ไข Interlab ได้");
+            }
+        }
+
+        async function deleteInterlabRecord(recordId) {
+            const record = interlabs.find(r => r.id === recordId);
+            if (confirm(`คุณต้องการลบข้อมูล Interlab Comparison ของห้องปฏิบัติการ ${record.labName} ใช่หรือไม่?`)) {
+                try {
+                    await db.collection('interlabs').doc(recordId).delete();
+                    addLog('DELETE_INTERLAB_RECORD', `Deleted Interlab record ID: ${recordId}`);
+                    await loadDataFromFirebase();
+                    displayInterlabRecords();
+                } catch (e) {
+                    console.error("Error deleting Interlab record:", e);
+                    alert("ไม่สามารถลบข้อมูล Interlab ได้");
+                }
+            }
+        }
+        
+        function displayAuditLogs() {
+            const auditLogListEl = document.getElementById('auditLogList');
+            auditLogListEl.innerHTML = '';
+            
+            auditLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if (auditLogs.length > 0) {
+                auditLogs.forEach(log => {
+                    const listItem = document.createElement('div');
+                    listItem.className = 'list-item';
+                    const timestamp = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate().toLocaleString('th-TH') : 'N/A';
+                    listItem.innerHTML = `
+                        <div class="list-item-content" style="white-space: pre-wrap;">
+                            <strong>[${timestamp}]</strong> <strong>${log.user}</strong>: ${log.action} - ${log.details}
+                        </div>
+                    `;
+                    auditLogListEl.appendChild(listItem);
+                });
+            } else {
+                auditLogListEl.innerHTML = '<p style="text-align: center; color: #6c757d;">ไม่มีข้อมูลประวัติการตรวจสอบ</p>';
+            }
+        }
+
+        // --- Utility Functions ---
+        function clearAllForms(type) {
+            if (type === 'eqa') {
+                document.getElementById('eqaReceiveDate').value = '';
+                document.getElementById('eqaSubmitDate').value = '';
+                document.getElementById('eqaProjectName').value = '';
+                document.getElementById('eqaProjectCustom').value = '';
+                document.getElementById('eqaProjectCustomGroup').style.display = 'none';
+                document.getElementById('eqaAssessmentRound').value = '';
+                document.getElementById('eqaAgency').value = '';
+                document.getElementById('eqaTestName').value = '';
+                document.getElementById('eqaTestCustom').value = '';
+                document.getElementById('eqaTestCustomGroup').style.display = 'none';
+                document.getElementById('eqaTestResult').value = '';
+                document.getElementById('eqaResultStatus').value = '';
+                document.getElementById('eqaComments').value = '';
+                currentEQATestResults = [];
+                renderEQATestResults();
+            } else if (type === 'interlab') {
+                document.getElementById('interlabReceiveDate').value = '';
+                document.getElementById('interlabSubmitDate').value = '';
+                document.getElementById('interlabLabName').value = '';
+                document.getElementById('interlabLabCustom').value = '';
+                document.getElementById('interlabLabCustomGroup').style.display = 'none';
+                document.getElementById('interlabComparisonRound').value = '';
+                document.getElementById('interlabTestName').value = '';
+                document.getElementById('interlabResultStatus').value = '';
+                document.getElementById('interlabComments').value = '';
+                currentInterlabTestResults = [];
+                renderInterlabTestResults();
+            }
+        }
+        
+        function closeModal(event, modalId) {
+            const modal = document.getElementById(modalId);
+            if (event && event.target !== modal) {
+                return;
+            }
+            modal.style.display = 'none';
+        }
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            showTab('login');
+        });
+        
+        // Listen for auth state changes
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    loggedInUser = { uid: userDoc.id, ...userDoc.data() };
+                    updateUIForLogin();
+                }
+            } else {
+                loggedInUser = null;
+                showTab('login');
+            }
+        });
+    </script>
+</body>
+</html>
